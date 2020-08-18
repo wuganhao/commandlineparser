@@ -3,6 +3,7 @@ name: Release Tagging
 on:
   push:
     tags:
+      - '*'
 
 jobs:
   build:
