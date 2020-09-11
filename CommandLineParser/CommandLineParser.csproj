@@ -6,14 +6,12 @@
     <RootNamespace>WuGanhao.CommandLineParser</RootNamespace>
     <AssemblyName>WuGanhao.CommandLineParser</AssemblyName>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>1.0.0</Version>
+    <Version>0.2.0</Version>
     <Authors>Wu, Ganhao</Authors>
     <Product>WuGanhao.CommandLineParser</Product>
     <Copyright>WuGanhao (c) 2020</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <LangVersion>8.0</LangVersion>
     <PackageId>WuGanhao.CommandLineParser</PackageId>
-    <ApplicationIcon />
-    <StartupObject />
   </PropertyGroup>
 </Project>

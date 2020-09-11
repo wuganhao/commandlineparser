@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
@@ -19,8 +19,6 @@ jobs:
     - name: Setup .NET Core CLI
       uses: actions/setup-dotnet@v1.1.0
 
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.0
-
     - name: Build
-      run: dotnet build CommandLineParser.sln -p:Configuration=Release
+      run: dotnet build CommandLineParser.sln -p:Configuration=Release -o dist
+
