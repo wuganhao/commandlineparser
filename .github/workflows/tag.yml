@@ -26,5 +26,5 @@ jobs:
 
     - name: Build
       run: |
-        dotnet build CommandLineParser.sln -p:Configuration=Release -p:Version=${{ env.git_tag_name }} -p:RepositoryUrl=https://github.com/${{ env.github_repository }}.git -p:RepositoryType=git  -o dist
+        dotnet build CommandLineParser.sln -p:Configuration=Release -p:Version=${{ env.git_tag_name }} -p:RepositoryUrl=https://github.com/${{ github.repository }}.git -p:RepositoryType=git  -o dist
         dotnet nuget push dist\*.nupkg -s https://api.nuget.org/v3/index.json -k ${{secrets.nuget_api_key}} 
