@@ -20,5 +20,5 @@ jobs:
       uses: actions/setup-dotnet@v1.1.0
 
     - name: Build
-      run: dotnet build CommandLineParser.sln -p:Configuration=Release -p:RepositoryUrl=https://github.com/{{ env.github_repository }}.git -p:RepositoryType=git -o dist
+      run: dotnet build CommandLineParser.sln -p:Configuration=Release -p:RepositoryUrl=https://github.com/${{ env.github_repository }}.git -p:RepositoryType=git -o dist
 
