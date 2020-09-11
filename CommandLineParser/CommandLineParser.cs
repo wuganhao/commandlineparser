@@ -14,6 +14,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace WuGanhao.CommandLineParser
 {
@@ -185,7 +186,7 @@ namespace WuGanhao.CommandLineParser
             return _commands.FirstOrDefault(c => c.Command == strCmd);
         }
 
-        public int Invoke() {
+        public async Task<int> Invoke() {
             SubCommandAttribute cmdAttr = this.GetSubCommandAttribute();
             if (cmdAttr == null && this.IsHelp()) {
                 this.ShowHelp();
@@ -206,7 +207,7 @@ namespace WuGanhao.CommandLineParser
             if (cmdAttr != null) {
                 IEnumerable<string> args = Environment.GetCommandLineArgs().Skip(2);
                 SubCommand cmd = this.GetSubCommand(cmdAttr.Type);
-                return cmd.Run() ? 0 : 1;
+                return await cmd.Run() ? 0 : 1;
             }
 
             return 0;

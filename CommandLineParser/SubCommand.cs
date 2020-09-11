@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace WuGanhao.CommandLineParser
 {
@@ -7,7 +8,7 @@ namespace WuGanhao.CommandLineParser
         public SubCommand() {
         }
 
-        public abstract bool Run ();
+        public abstract Task<bool> Run ();
     }
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]

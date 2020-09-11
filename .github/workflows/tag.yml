@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
@@ -15,9 +15,6 @@ jobs:
 
     - name: Setup .NET Core CLI
       uses: actions/setup-dotnet@v1.1.0
-
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.0
 
     - name: extract tag name
       if: startswith(github.ref, 'refs/tags/')
@@ -29,5 +26,5 @@ jobs:
 
     - name: Build
       run: |
-        dotnet build CommandLineParser.sln -p:Configuration=Release -p:Version=${{ env.git_tag_name }} -o dist
+        dotnet build CommandLineParser.sln -p:Configuration=Release -p:Version=${{ env.git_tag_name }} -p:RepositoryUrl=https://github.com/${{ github.repository }}.git -p:RepositoryType=git  -o dist
         dotnet nuget push dist\*.nupkg -s https://api.nuget.org/v3/index.json -k ${{secrets.nuget_api_key}} 
