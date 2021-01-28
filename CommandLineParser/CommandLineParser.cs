@@ -23,14 +23,14 @@ namespace WuGanhao.CommandLineParser
     /// <summary>
     /// Command Line Parser
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class CommandLineParser<T> where T : new() {
+    /// <typeparam name="TCommandExecutor"></typeparam>
+    public class CommandLineParser<TCommandExecutor> where TCommandExecutor : class, new() {
 
-        private readonly Type Type = typeof(T);
+        private readonly Type Type = typeof(TCommandExecutor);
         private readonly Dictionary<PropertyInfo, CommandAbstractAttribute> _attrs =
-            typeof(T).GetProperties().Where(p => p.GetCustomAttribute<CommandAbstractAttribute>(true) != null)
+            typeof(TCommandExecutor).GetProperties().Where(p => p.GetCustomAttribute<CommandAbstractAttribute>(true) != null)
             .ToDictionary(p => p, p => p.GetCustomAttribute<CommandAbstractAttribute>(true));
-        private readonly IEnumerable<SubCommandAttribute> _commands = typeof(T).GetCustomAttributes(typeof(SubCommandAttribute), true)
+        private readonly IEnumerable<SubCommandAttribute> _commands = typeof(TCommandExecutor).GetCustomAttributes(typeof(SubCommandAttribute), true)
             .Cast<SubCommandAttribute>();
 
         public CommandLineParser() {
@@ -148,9 +148,14 @@ namespace WuGanhao.CommandLineParser
         /// Parse options from current command line
         /// </summary>
         /// <returns></returns>
-        public SubCommand GetSubCommand(Type subCmdType) {
+        public SubCommand GetSubCommand(TCommandExecutor parent, Type subCmdType) {
             IEnumerable<string> args = Environment.GetCommandLineArgs().Skip(2);
             SubCommand cmd = (SubCommand)System.Activator.CreateInstance(subCmdType);
+
+            SubCommand<TCommandExecutor> strongTypedCmd = cmd as SubCommand<TCommandExecutor>;
+            if (strongTypedCmd != null) {
+                strongTypedCmd.Parent = parent;
+            }
 
             //Validate command options class
             this.ValidateArguments();
@@ -179,15 +184,30 @@ namespace WuGanhao.CommandLineParser
             return !args.Any() || args.Any(a => a == "-h" || a == "--help");
         }
 
-        public SubCommandAttribute GetSubCommandAttribute() {
+        private SubCommandAttribute GetSubCommandAttribute(out TCommandExecutor commandExecutor) {
+            TCommandExecutor executor = new TCommandExecutor();
             IEnumerable<string> args = Environment.GetCommandLineArgs().Skip(1);
-            string strCmd = args.FirstOrDefault();
 
-            return _commands.FirstOrDefault(c => c.Command == strCmd);
+            IEnumerator<string> enumerator = args.GetEnumerator();
+            while (enumerator.MoveNext()) {
+                string arg = enumerator.Current;
+                SubCommandAttribute attr = _commands.FirstOrDefault(c => c.Command == enumerator.Current);
+                if (attr != null) {
+                    commandExecutor = executor;
+                    return attr;
+                }
+
+                if (!_attrs.Any(kvp => kvp.Value.TryConsumeArgs(executor, kvp.Key, enumerator))) {
+                    throw new ArgumentException($"Invalid argument '{enumerator.Current}'");
+                }
+            }
+
+            commandExecutor = null;
+            return null;
         }
 
         public async Task<int> Invoke() {
-            SubCommandAttribute cmdAttr = this.GetSubCommandAttribute();
+            SubCommandAttribute cmdAttr = this.GetSubCommandAttribute(out TCommandExecutor commandExecutor);
             if (cmdAttr == null && this.IsHelp()) {
                 this.ShowHelp();
                 return 0;
@@ -206,7 +226,7 @@ namespace WuGanhao.CommandLineParser
 
             if (cmdAttr != null) {
                 IEnumerable<string> args = Environment.GetCommandLineArgs().Skip(2);
-                SubCommand cmd = this.GetSubCommand(cmdAttr.Type);
+                SubCommand cmd = this.GetSubCommand(commandExecutor, cmdAttr.Type);
                 return await cmd.Run() ? 0 : 1;
             }
 

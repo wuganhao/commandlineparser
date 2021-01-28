@@ -11,6 +11,10 @@ namespace WuGanhao.CommandLineParser
         public abstract Task<bool> Run ();
     }
 
+    public abstract class SubCommand<TCommandExecutor>: SubCommand {
+        public TCommandExecutor Parent { get; internal set; }
+    }
+
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 
     public class SubCommandAttribute: Attribute {
