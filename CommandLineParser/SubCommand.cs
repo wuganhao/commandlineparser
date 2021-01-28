@@ -8,7 +8,7 @@ namespace WuGanhao.CommandLineParser
         public SubCommand() {
         }
 
-        public abstract Task<bool> Run ();
+        public abstract Task Run ();
     }
 
     public abstract class SubCommand<TCommandExecutor>: SubCommand {

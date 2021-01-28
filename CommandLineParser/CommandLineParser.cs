@@ -55,7 +55,7 @@ namespace WuGanhao.CommandLineParser
         }
 
         public void ShowHelp() {
-            string fileName = Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location);
+            string fileName = Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location);
             string description = this.Type.GetCustomAttribute<DescriptionAttribute>()?.Description ?? string.Empty;
             Console.WriteLine(fileName);
             Console.WriteLine(description);
@@ -88,7 +88,7 @@ namespace WuGanhao.CommandLineParser
         }
 
         public void ShowHelp(SubCommandAttribute cmdAttr) {
-            string fileName = Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location);
+            string fileName = Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location);
             string description = this.Type.GetCustomAttribute<DescriptionAttribute>()?.Description ?? string.Empty;
             Console.WriteLine(fileName);
             Console.WriteLine(description);
@@ -197,7 +197,8 @@ namespace WuGanhao.CommandLineParser
                     return attr;
                 }
 
-                if (!_attrs.Any(kvp => kvp.Value.TryConsumeArgs(executor, kvp.Key, enumerator))) {
+                if (!_attrs.Any(kvp => kvp.Value.TryConsumeArgs(executor, kvp.Key, enumerator)) &&
+                    arg != "-h" && arg != "--help" ) {
                     throw new ArgumentException($"Invalid argument '{enumerator.Current}'");
                 }
             }
@@ -206,11 +207,12 @@ namespace WuGanhao.CommandLineParser
             return null;
         }
 
-        public async Task<int> Invoke() {
+        public async Task Invoke() {
             SubCommandAttribute cmdAttr = this.GetSubCommandAttribute(out TCommandExecutor commandExecutor);
+
             if (cmdAttr == null && this.IsHelp()) {
                 this.ShowHelp();
-                return 0;
+                return;
             }
 
             if (cmdAttr == null) {
@@ -221,16 +223,14 @@ namespace WuGanhao.CommandLineParser
 
             if (this.IsHelp(cmdAttr)) {
                 this.ShowHelp(cmdAttr);
-                return 0;
+                return;
             }
 
             if (cmdAttr != null) {
                 IEnumerable<string> args = Environment.GetCommandLineArgs().Skip(2);
                 SubCommand cmd = this.GetSubCommand(commandExecutor, cmdAttr.Type);
-                return await cmd.Run() ? 0 : 1;
+                await cmd.Run();
             }
-
-            return 0;
         }
     }
 
