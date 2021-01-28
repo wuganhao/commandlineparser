@@ -148,8 +148,7 @@ namespace WuGanhao.CommandLineParser
         /// Parse options from current command line
         /// </summary>
         /// <returns></returns>
-        public SubCommand GetSubCommand(TCommandExecutor parent, Type subCmdType) {
-            IEnumerable<string> args = Environment.GetCommandLineArgs().Skip(2);
+        public SubCommand GetSubCommand(TCommandExecutor parent, Type subCmdType, IEnumerator<string> argumentEnumerator) {
             SubCommand cmd = (SubCommand)System.Activator.CreateInstance(subCmdType);
 
             SubCommand<TCommandExecutor> strongTypedCmd = cmd as SubCommand<TCommandExecutor>;
@@ -162,11 +161,10 @@ namespace WuGanhao.CommandLineParser
 
             var attrs = subCmdType.GetProperties().Where(p => p.GetCustomAttribute<CommandAbstractAttribute>(true) != null)
             .ToDictionary(p => p, p => p.GetCustomAttribute<CommandAbstractAttribute>(true));
-            IEnumerator<string> enumerator = args.GetEnumerator();
 
-            while (enumerator.MoveNext()) {
-                if (!attrs.Any(kvp => kvp.Value.TryConsumeArgs(cmd, kvp.Key, enumerator))) {
-                    throw new ArgumentException($"Invalid argument '{enumerator.Current}'");
+            while (argumentEnumerator.MoveNext()) {
+                if (!attrs.Any(kvp => kvp.Value.TryConsumeArgs(cmd, kvp.Key, argumentEnumerator))) {
+                    throw new ArgumentException($"Invalid argument '{argumentEnumerator.Current}'");
                 }
             }
 
@@ -184,7 +182,7 @@ namespace WuGanhao.CommandLineParser
             return !args.Any() || args.Any(a => a == "-h" || a == "--help");
         }
 
-        private SubCommandAttribute GetSubCommandAttribute(out TCommandExecutor commandExecutor) {
+        private SubCommandAttribute GetSubCommandAttribute(out TCommandExecutor commandExecutor, out IEnumerator<string> argumentEnumerator) {
             TCommandExecutor executor = new TCommandExecutor();
             IEnumerable<string> args = Environment.GetCommandLineArgs().Skip(1);
 
@@ -194,6 +192,7 @@ namespace WuGanhao.CommandLineParser
                 SubCommandAttribute attr = _commands.FirstOrDefault(c => c.Command == enumerator.Current);
                 if (attr != null) {
                     commandExecutor = executor;
+                    argumentEnumerator = enumerator;
                     return attr;
                 }
 
@@ -204,22 +203,23 @@ namespace WuGanhao.CommandLineParser
             }
 
             commandExecutor = null;
+            argumentEnumerator = null;
             return null;
         }
 
         public async Task Invoke() {
-            SubCommandAttribute cmdAttr = this.GetSubCommandAttribute(out TCommandExecutor commandExecutor);
+            SubCommandAttribute cmdAttr = this.GetSubCommandAttribute(out TCommandExecutor commandExecutor, out IEnumerator<string> argumentEnumerator);
 
             if (cmdAttr == null && this.IsHelp()) {
                 this.ShowHelp();
                 return;
             }
 
-            if (cmdAttr == null) {
-                IEnumerable<string> args = Environment.GetCommandLineArgs().Skip(1);
-                string strCmd = args.FirstOrDefault();
-                throw new CommandLineException($"Invalid command: {strCmd}");
-            }
+            //if (cmdAttr == null) {
+            //    IEnumerable<string> args = Environment.GetCommandLineArgs().Skip(1);
+            //    string strCmd = args.FirstOrDefault();
+            //    throw new CommandLineException($"Invalid command: {strCmd}");
+            //}
 
             if (this.IsHelp(cmdAttr)) {
                 this.ShowHelp(cmdAttr);
@@ -227,8 +227,7 @@ namespace WuGanhao.CommandLineParser
             }
 
             if (cmdAttr != null) {
-                IEnumerable<string> args = Environment.GetCommandLineArgs().Skip(2);
-                SubCommand cmd = this.GetSubCommand(commandExecutor, cmdAttr.Type);
+                SubCommand cmd = this.GetSubCommand(commandExecutor, cmdAttr.Type, argumentEnumerator);
                 await cmd.Run();
             }
         }
