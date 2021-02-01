@@ -81,4 +81,4 @@ namespace WuGanhao.CSharpRewrite {
 
 # This library is currently used in:
 * [GitHubTool]() - A simple utility for managing with GitHub
-* [cs-rewrite]() - A tool for help rewrite C# code
+* [cs-rewrite](https://github.com/wuganhao/cs-rewrite) - A tool for help rewrite C# code
