@@ -7,7 +7,7 @@ This package provides a command line parser with following features:
 
 ## Translation
 
-*[中文](https://github.com/wuganhao/commandlineparser/blob/master/README-cn.md)
+* [中文](https://github.com/wuganhao/commandlineparser/blob/master/README-cn.md)
 
 ## Installation
 
