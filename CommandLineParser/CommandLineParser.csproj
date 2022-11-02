@@ -11,7 +11,11 @@
     <Product>WuGanhao.CommandLineParser</Product>
     <Copyright>WuGanhao (c) 2020</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>latest</LangVersion>
     <PackageId>WuGanhao.CommandLineParser</PackageId>
+    <PackageReadmeFile>docs\README.md</PackageReadmeFile>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\README.md" Link="README.md" Pack="True" PackagePath="\docs"/>
+  </ItemGroup>
 </Project>
