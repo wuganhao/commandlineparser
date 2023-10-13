@@ -232,5 +232,4 @@ namespace WuGanhao.CommandLineParser
             }
         }
     }
-
 }
