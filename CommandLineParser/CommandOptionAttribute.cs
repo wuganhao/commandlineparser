@@ -68,30 +68,36 @@ namespace WuGanhao.CommandLineParser
         public override bool TryConsumeArgs<T>(T instance, PropertyInfo prop, IEnumerator<string> argEnumerator) {
             if (instance == null)
                 throw new ArgumentNullException(nameof(instance));
-            if (instance == null)
+            if (argEnumerator == null)
                 throw new ArgumentNullException(nameof(argEnumerator));
 
             if (!this.TryGetValue(argEnumerator, out string value)) {
                 return false;
             }
 
-            if (prop.PropertyType.IsGenericType) {
-                if (prop.PropertyType == typeof(ICollection<string>)) {
-                    ICollection<string> collection = prop.GetValue(instance) as ICollection<string>;
-                    if (collection == null) {
-                        collection = new Collection<string>();
-                        prop.SetValue(instance, collection);
+            try { 
+                if (prop.PropertyType.IsGenericType) {
+                    if (prop.PropertyType == typeof(ICollection<string>)) {
+                        ICollection<string> collection = prop.GetValue(instance) as ICollection<string>;
+                        if (collection == null) {
+                            collection = new Collection<string>();
+                            prop.SetValue(instance, collection);
+                        }
+                        collection.Add(value);
+                    } else {
+                        throw new InvalidOperationException($"Invalid type {prop.PropertyType}");
                     }
-                    collection.Add(value);
+                } else if (prop.PropertyType.IsEnum) {
+                    prop.SetValue(instance, Enum.Parse(prop.PropertyType, value, true));
+                } else if (prop.PropertyType == typeof(Version)) {
+                    prop.SetValue(instance, Version.Parse(value));
                 } else {
-                    throw new InvalidOperationException($"Invalid type {prop.PropertyType}");
+                    prop.SetValue(instance, Convert.ChangeType(value, prop.PropertyType));
                 }
-            } else if (prop.PropertyType.IsEnum) {
-                prop.SetValue(instance, Enum.Parse(prop.PropertyType, value, true));
-            } else {
-                prop.SetValue(instance, Convert.ChangeType(value, prop.PropertyType));
+                return true;
+            } catch (Exception ex) {
+                throw new InvalidCastException($"Cannot convert string '{value}' as type '{prop.PropertyType.Name}'", ex);
             }
-            return true;
         }
     }
 }
